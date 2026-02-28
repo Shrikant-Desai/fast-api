@@ -1,5 +1,8 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from app.core.config import settings
+from app.middleware.logging import log_requests
 
 
 def create_app() -> FastAPI:
@@ -9,9 +12,24 @@ def create_app() -> FastAPI:
         redoc_url="/redoc" if settings.DEBUG else None,  # hide redoc in production
     )
 
+    register_middleware(app)
     register_routes(app)
 
     return app
+
+
+def register_middleware(app: FastAPI):
+    # CORS — controls which domains can call your API
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"] if settings.DEBUG else ["https://yourdomain.com"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    # logging middleware
+    app.add_middleware(BaseHTTPMiddleware, dispatch=log_requests)
 
 
 def register_routes(app: FastAPI):

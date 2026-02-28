@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: str
     DEBUG: bool
     SECRET_KEY: str
+    DATABASE_URL: str
 
     class Config:
         env_file = ".env"  # tells pydantic to read from .env
