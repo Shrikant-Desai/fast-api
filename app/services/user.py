@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
 from app.core.security import hash_password
+from sqlalchemy.exc import IntegrityError
 
 
 def get_user_by_id(db: Session, user_id: int) -> User | None:
@@ -29,7 +30,11 @@ def create_user(db: Session, payload: UserCreate) -> User:
     )
 
     db.add(user)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise ValueError("Email already registered")
     db.refresh(user)  # refresh to get the auto-generated id and created_at
     return user
 
@@ -39,6 +44,8 @@ def update_user(db: Session, user_id: int, payload: UserUpdate) -> User | None:
     if not user:
         return None
 
+    if "password" in update_data:
+        update_data["hashed_password"] = hash_password(update_data.pop("password"))
     # only update fields that were actually sent
     update_data = payload.model_dump(exclude_unset=True)
     for field, value in update_data.items():
