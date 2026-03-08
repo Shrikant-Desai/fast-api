@@ -33,9 +33,10 @@ def register_middleware(app: FastAPI):
 
 
 def register_routes(app: FastAPI):
-    from app.api.v1.routes import health
+    from app.api.v1.routes import health, user
 
     app.include_router(health.router, prefix="/api/v1", tags=["Health"])
+    app.include_router(user.router, prefix="/api/v1", tags=["Users"])
 
 
 app = create_app()
